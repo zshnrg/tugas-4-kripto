@@ -8,6 +8,9 @@ from pages.menu.menu import MenuView
 from pages.settings import SettingsView
 from pages.menu.database.database import DatabaseView
 from pages.menu.database.add import AddView
+from pages.menu.transcript import TranscriptView
+from pages.menu.open import OpenView
+from pages.menu.validate import ValidateView
 
 def router(page: Page, route: str):
     troute = TemplateRoute(route)
@@ -33,4 +36,11 @@ def router(page: Page, route: str):
         return DatabaseView(page)
     elif troute.match('/database/add'):
         return AddView(page)
-    
+    elif troute.match('/transcript'):
+        return TranscriptView(page)
+    elif troute.match('/open'):
+        return OpenView(page)
+    elif troute.match('/validate'):
+        return ValidateView(page)
+    else:
+        return MenuView(page)

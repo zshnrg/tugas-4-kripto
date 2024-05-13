@@ -71,9 +71,6 @@ class Table(Column):
                     )
                 first = False
 
-    def update(self):
-        return super().update()
-
 class DatabaseListView(ListView):
     def __init__ (self, page: Page):
         super().__init__()
