@@ -1,12 +1,17 @@
 from flet import *
 from router import router
- 
+from lib.academic_db import Mahasiswa, Course, AcademicData
+from services.db import db
+
 async def main(page: Page):
     page.title = "XIS"
     page.theme = Theme(
         color_scheme_seed=colors.BLUE_GREY
     )
     page.theme_mode = ThemeMode.LIGHT
+
+    page.database = AcademicData(page, db)
+    page.database.load_from_db()
     
     def route_change(route):
         page.views.clear()

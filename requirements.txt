@@ -1,1 +1,4 @@
 flet
+supabase
+reportlab
+pypdf

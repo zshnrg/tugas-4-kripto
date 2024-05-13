@@ -13,7 +13,7 @@ class MenuContainer(Container):
         self.vertical_alignment = MainAxisAlignment.CENTER
         self.horizontal_alignment = CrossAxisAlignment.CENTER
 
-        self.email = self.page.client_storage.get("user.email")
+        self.role = self.page.client_storage.get("user.role")
 
         self.database_card = Card(
             content=Container(
@@ -107,6 +107,31 @@ class MenuContainer(Container):
             variant=CardVariant.OUTLINED,
         )
 
+        if self.role == "mahasiswa":
+            self.column = Column(
+                controls=[
+                    self.open_transcript_card,
+                    self.validate_transcript_card,
+                ],
+            )
+        elif self.role == "dosen":
+            self.column = Column(
+                controls=[
+                    self.database_card,
+                    self.open_transcript_card,
+                    self.validate_transcript_card,
+                ],
+            )
+        else:
+            self.column = Column(
+                controls=[
+                    self.database_card,
+                    self.transcript_card,
+                    self.open_transcript_card,
+                    self.validate_transcript_card,
+                ],
+            )
+
         self.content = Column(
             controls=[
                 IconButton(
@@ -118,15 +143,7 @@ class MenuContainer(Container):
                         controls=[
                             Text("Menu", size=36, weight=FontWeight.BOLD),
                             Text("Pilih menu yang ingin Anda akses", size=15, color=colors.ON_SURFACE_VARIANT),
-                            Column(
-                                controls=[
-                                    self.database_card,
-                                    self.transcript_card,
-                                    self.open_transcript_card,
-                                    self.validate_transcript_card,
-                                ],
-                                spacing=10
-                            ),
+                            self.column
                         ],
                         spacing=40
                     ),
@@ -144,11 +161,9 @@ class MenuView(View):
         self.page.splash = None
 
         # Check for redirect
-        if not page.client_storage.get("user.validated") or not page.client_storage.get("user.email"):
-            print("Email not found")
+        if not page.client_storage.get("user.email") or not page.client_storage.get("user.validated"):
             page.go("/auth")
-        if not page.client_storage.get("user.role"):
-            print("Role not found")
+        elif not page.client_storage.get("user.role"):
             page.go("/auth/role")
 
         self.vertical_alignment = MainAxisAlignment.CENTER

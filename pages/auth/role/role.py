@@ -84,9 +84,9 @@ class RoleView(View):
         self.page.splash = None
 
         # Check for redirect
-        if not page.client_storage.get("user.email"):
+        if not page.client_storage.get("user.email") or not page.client_storage.get("user.validated"):
             page.go("/auth")
-        if page.client_storage.get("user.role"):
+        elif page.client_storage.get("user.role"):
             page.go("/")
 
         self.vertical_alignment = MainAxisAlignment.CENTER

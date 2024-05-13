@@ -1,5 +1,6 @@
 import re
 from flet import *
+from services.db import db
 
 class AuthContainer(Container):
     def __init__(self, page: Page):
@@ -64,10 +65,25 @@ class AuthContainer(Container):
 
             self.page.update()
             return
+        
+        # Search for user in database
+        user = db.getUser(self.email.value)
 
-        self.page.client_storage.set("user.email", self.email.value)
+        if user is None:
+            # Insert user to database
+            user = db.signUp(self.email.value)
+            self.page.client_storage.set("user.email", self.email.value)
+            self.page.go("/auth/otp")
+        else:
+            self.page.client_storage.set("user.email", self.email.value)
+            self.page.client_storage.set("user.name", user["name"])
+            self.page.client_storage.set("user.validated", True)
+            self.page.client_storage.set("user.role", user["role"])
+            self.page.go("/")
 
-        self.page.go("/auth/otp")
+        print(user)
+
+
         
 class AuthView(View):
     def __init__(self, page: Page):
@@ -78,7 +94,7 @@ class AuthView(View):
         # Check for redirect
         if page.client_storage.get("user.role"):
             page.go("/")
-        if page.client_storage.get("user.validated"):
+        elif page.client_storage.get("user.validated"):
             page.go("/auth/role")
         
         self.vertical_alignment = MainAxisAlignment.CENTER

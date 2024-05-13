@@ -1,4 +1,5 @@
 from flet import *
+from services.db import db
 
 class OTPContainer(Container):
     def __init__(self, page: Page):
@@ -132,17 +133,29 @@ class OTPContainer(Container):
             self.otp_5.focus()
             return
         otp = self.otp_1.value + self.otp_2.value + self.otp_3.value + self.otp_4.value + self.otp_5.value + self.otp_6.value
-        print(otp)
         
         self.page.splash = ProgressBar()
         self.submit_button.disabled = True
         self.page.update()
 
         # Validate OTP
-        ...
+        try:
+            user = db.verifyOTP(self.email, otp)
 
-        self.page.client_storage.set("user.validated", True)
-        self.page.go("/auth/role")
+            db.insertUser(self.email)
+
+            self.page.client_storage.set("user.validated", True)
+            self.page.go("/auth/role")
+        except Exception as e:
+            self.page.splash = None
+            self.submit_button.disabled = False
+            self.page.snack_bar = SnackBar(
+                content=Text("Kode verifikasi salah", color=colors.ON_ERROR_CONTAINER),
+                bgcolor=colors.ERROR_CONTAINER,
+            )
+            self.page.snack_bar.open = True
+            self.page.update()
+            return
 
     def back(self, e):
         self.page.client_storage.remove("user.email")
@@ -182,6 +195,10 @@ class OTPView(View):
         # Check for redirect
         if not page.client_storage.get("user.email"):
             page.go("/auth")
+        elif page.client_storage.get("user.validated"):
+            page.go("/auth/role")
+        elif page.client_storage.get("user.role"):
+            page.go("/")
         
         self.vertical_alignment = MainAxisAlignment.CENTER
         self.horizontal_alignment = CrossAxisAlignment.CENTER

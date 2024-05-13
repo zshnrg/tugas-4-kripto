@@ -1,4 +1,5 @@
 from flet import *
+from services.db import db
 
 class MahasiswaContainer(Container):
     def __init__(self, page: Page):
@@ -74,13 +75,30 @@ class MahasiswaContainer(Container):
 
         self.page.splash = ProgressBar()
 
-        self.page.client_storage.set("user.name", self.name.value)
-        self.page.client_storage.set("user.nim", self.nim.value)
-        self.page.client_storage.set("user.role", "mahasiswa")
-        
-        # Save to storage
+        # Save to database 
+        try:
+            db.updateUser(
+                email=self.page.client_storage.get("user.email"),
+                data={
+                    "name": self.name.value,
+                    "cred_id": self.nim.value,
+                    "role": "mahasiswa"
+                }
+            )
 
-        self.page.go("/")
+            self.page.client_storage.set("user.name", self.name.value)
+            self.page.client_storage.set("user.cred_id", self.nim.value)
+            self.page.client_storage.set("user.role", "mahasiswa")
+            
+            self.page.go("/")
+        except Exception as e:
+            self.page.snack_bar = SnackBar(
+                content=Text("Terjadi kesalahan", color=colors.ON_ERROR_CONTAINER),
+                bgcolor=colors.ERROR_CONTAINER,
+            )
+            self.page.snack_bar.open = True
+            self.page.splash = None
+            self.page.update()
 
 class MahasiswaView(View):
     def __init__(self, page: Page):
@@ -92,7 +110,7 @@ class MahasiswaView(View):
         # Check for redirect
         if not page.client_storage.get("user.validated") or not page.client_storage.get("user.email"):
             page.go("/auth")
-        if page.client_storage.get("user.role"):
+        elif page.client_storage.get("user.role"):
             page.go("/")
 
         self.vertical_alignment = MainAxisAlignment.CENTER

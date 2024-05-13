@@ -4,7 +4,10 @@ from pages.auth.otp.otp import OTPView
 from pages.auth.role.role import RoleView
 from pages.auth.role.mahasiswa import MahasiswaView
 from pages.auth.role.dosen import DosenView
-from pages.menu import MenuView
+from pages.menu.menu import MenuView
+from pages.settings import SettingsView
+from pages.menu.database.database import DatabaseView
+from pages.menu.database.add import AddView
 
 def router(page: Page, route: str):
     troute = TemplateRoute(route)
@@ -20,4 +23,14 @@ def router(page: Page, route: str):
         return MahasiswaView(page)
     elif troute.match('/auth/role/dosen'):
         return DosenView(page)
+    elif troute.match('/settings'):
+        return SettingsView(page)
+    elif troute.match('/database'):
+        return DatabaseView(page)
+    elif troute.match('/database/e'):
+        return DatabaseView(page)
+    elif troute.match('/database/d'):
+        return DatabaseView(page)
+    elif troute.match('/database/add'):
+        return AddView(page)
     
