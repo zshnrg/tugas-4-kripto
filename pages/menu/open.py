@@ -110,13 +110,31 @@ class OpenListView(ListView):
         self.page.snack_bar.open = True
         self.page.update()
 
-       
+        try:
+            with open(self.file_path, "rb") as f:
+                data = f.read()
+        except FileNotFoundError:
+            self.page.snack_bar = SnackBar(
+                content=Text("File tidak ditemukan", color=colors.ON_ERROR_CONTAINER),
+                bgcolor=colors.ERROR_CONTAINER,
+            )
+            self.page.snack_bar.open = True
+            self.page.splash = None
+            self.page.update()
+            return
 
-        with open(self.file_path, "rb") as f:
-            data = f.read()
-
-        aes = AESCipher(self.key.encode())
-        data = aes.decrypt(data)
+        try:
+            aes = AESCipher(self.key.encode())
+            data = aes.decrypt(data)
+        except Exception as e:
+            self.page.snack_bar = SnackBar(
+                content=Text("Dekripsi gagal karena file tidak valid", color=colors.ON_ERROR_CONTAINER),
+                bgcolor=colors.ERROR_CONTAINER,
+            )
+            self.page.snack_bar.open = True
+            self.page.splash = None
+            self.page.update()
+            return
 
         data_split = data.split(b"http://www.reportlab.com")
         new_content = b'%PDF-1.4\n%\x93\x8c\x8b\x9e ReportLab Generated PDF document http://www.reportlab.com' + data_split[1] + b"http://www.reportlab.com" + data_split[2]
@@ -132,8 +150,18 @@ class OpenListView(ListView):
         current_datetime = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         file_name = f"Transcript_{current_datetime}.pdf"
 
-        with open(os.path.join(file_path, file_name), "wb") as f:
-            f.write(new_content)
+        try:
+            with open(os.path.join(file_path, file_name), "wb") as f:
+                f.write(new_content)
+        except FileNotFoundError:
+            self.page.snack_bar = SnackBar(
+                content=Text("Folder yang dipilih tidak ditemukan, file tidak dapat disimpan", color=colors.ON_ERROR_CONTAINER),
+                bgcolor=colors.ERROR_CONTAINER,
+            )
+            self.page.snack_bar.open = True
+            self.page.splash = None
+            self.page.update()
+            return
 
         self.page.splash = None
         self.page.snack_bar = SnackBar(

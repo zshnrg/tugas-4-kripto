@@ -10,7 +10,7 @@ from services.db import db
 async def main(page: Page):
     page.title = "XIS"
     page.theme = Theme(
-        color_scheme_seed=colors.BLUE_GREY
+        color_scheme_seed=colors.BLUE
     )
     page.theme_mode = ThemeMode.LIGHT
 

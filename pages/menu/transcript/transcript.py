@@ -2,12 +2,11 @@ from flet import *
 from lib.academic_db import Mahasiswa, AcademicData
 from services.db import db
 
-class Table(ListView):
+class Table(Column):
     def __init__(self, page: Page, mahasiswa: Mahasiswa):
         super().__init__()
         self.page = page
         self.spacing = 0
-        self.height = 500
 
         self.header = Container(
             content=Row(
@@ -26,13 +25,6 @@ class Table(ListView):
         )
 
         self.controls = [
-            Container(
-                FilledButton(
-                    text="Buat Transkrip",
-                    on_click=lambda e: self.page.go("/transcript/add/" + mahasiswa.nim)
-                ),
-                padding=padding.symmetric(vertical=40),
-            ),
             self.header,
         ]
 
@@ -82,6 +74,7 @@ class TranscriptListView(ListView):
         super().__init__()
         self.page = page
         self.padding = padding.symmetric(horizontal=50)
+        self.spacing = 40
 
         self.nim_nama_dict = {}
         for mahasiswa in db.mahasiswa:
@@ -104,37 +97,49 @@ class TranscriptListView(ListView):
             expand=True,
         )
 
-        self.nim_search_result = ListView(
-            padding=padding.symmetric(vertical=10),
+        self.nim_search_result = Column(
             expand=True
         )
 
+        self.search_result_container = Container(
+            content=self.nim_search_result,
+            bgcolor=colors.SURFACE,
+        )
+
+        self.create_button = FilledButton(
+            text="Buat Transkrip",
+            on_click=self.on_create,
+            disabled=True,
+        )
+
+        self.stack = Stack(
+            controls=[
+                self.create_button,
+            ]
+        )
+
         self.controls = [
-            Container(
-                Column(
-                    [
-                        Text("Transkrip Akademik", size=36, weight=FontWeight.BOLD),
-                        Divider(),
-                        Row(
-                            controls=[
-                                self.nim_text_field,
-                                self.name_text_field
-                            ]
-                        ),
-                    ],
-                    spacing=40,
-                ),
-                margin=margin.only(bottom=40)
+            Text("Transkrip Akademik", size=36, weight=FontWeight.BOLD),
+            Divider(),
+            Row(
+                controls=[
+                    self.nim_text_field,
+                    self.name_text_field
+                ]
             ),
-            self.nim_search_result,
+            self.stack,
+            Divider(),
         ]
 
     def on_nim_change(self, e):
-        self.nim_search_result.controls = []
-
-        
-        if len(self.controls) > 2:
+        if len(self.stack.controls) == 1:
+            self.stack.controls.append(self.search_result_container)
+            
+        if len(self.controls) > 5:
             self.controls.pop()
+
+        self.nim_search_result.controls = []
+        self.create_button.disabled = True
         
         for nim, nama in self.nim_nama_dict.items():
             if self.nim_text_field.value in nim:
@@ -149,32 +154,34 @@ class TranscriptListView(ListView):
         if len(self.nim_search_result.controls) == 1 and len(self.nim_text_field.value) == 8:
             self.name_text_field.value = self.nim_nama_dict[self.nim_search_result.controls[0].data]
             self.controls.append(
-                ListView(
-                    controls=[
-                        Table(self.page, self.page.database.get_mahasiswa(self.nim_search_result.controls[0].data))
-                    ]
-                )
+                Table(self.page, self.page.database.get_mahasiswa(self.nim_search_result.controls[0].data))
             )
         elif len(self.nim_search_result.controls) == 0 or len(self.nim_text_field.value) == 0:
+            self.nim_search_result.controls = []
             self.name_text_field.value = ""
         else:
             self.name_text_field.value = ""
         self.page.update()
 
     def on_nim_search_result_click(self, e):
+        self.stack.controls.pop()
+
+        if len(self.controls) > 5:
+            self.controls.pop()
+
         self.nim_text_field.value = e.control.data
         self.name_text_field.value = self.nim_nama_dict[e.control.data]
         self.controls.append(
-            ListView(
-                controls=[
-                    Table(self.page, self.page.database.get_mahasiswa(e.control.data))
-                ]
-            )
+            Table(self.page, self.page.database.get_mahasiswa(e.control.data))
         )
 
         self.nim_search_result.controls = []
+        self.create_button.disabled = False
 
         self.page.update()
+
+    def on_create(self, e):
+        self.page.go("/transcript/create/" + self.nim_text_field.value)
 
 class TranscriptView(View):
     def __init__(self, page: Page):

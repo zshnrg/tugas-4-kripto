@@ -16,7 +16,7 @@ class CreateTranscriptView(View):
     def __init__(self, page: Page, nim: str):
         super().__init__()
         self.page = page
-        self.route = "/transcript/add"
+        self.route = "/transcript/create"
         self.page.splash = None
 
         self.vertical_alignment = MainAxisAlignment.CENTER

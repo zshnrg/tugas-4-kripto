@@ -39,7 +39,7 @@ def router(page: Page, route: str):
         return AddView(page)
     elif troute.match('/transcript'):
         return TranscriptView(page)
-    elif troute.match('/transcript/add/:nim'):
+    elif troute.match('/transcript/create/:nim'):
         return CreateTranscriptView(page, troute.nim)
     elif troute.match('/open'):
         return OpenView(page)
