@@ -1,6 +1,6 @@
 from flet import *
 from services.db import db
-from lib.academic_db import AcademicData, Mahasiswa, Course, TakenCourse
+from lib.academic_db import AcademicData, Mahasiswa, Course, EnrolledCourse
 
 class MataKuliahSearch(Column):
     def __init__ (self, page: Page, data: dict[str, dict]):
@@ -244,7 +244,7 @@ class AddListView(ListView):
                 course = Course(kode, nama_mk, sks)
                 self.page.database.add_course(course)
             
-            mahasiswa.add_course(TakenCourse(course, nilai))
+            mahasiswa.add_course(EnrolledCourse(course, nilai))
             self.page.database.save()
 
             self.page.snack_bar = SnackBar(

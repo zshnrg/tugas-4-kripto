@@ -2,11 +2,12 @@ from flet import *
 from lib.academic_db import Mahasiswa, AcademicData
 from services.db import db
 
-class Table(Column):
+class Table(ListView):
     def __init__(self, page: Page, mahasiswa: Mahasiswa):
         super().__init__()
         self.page = page
         self.spacing = 0
+        self.height = 500
 
         self.header = Container(
             content=Row(
@@ -18,7 +19,6 @@ class Table(Column):
                     Text("SKS", size=16, weight=FontWeight.BOLD, expand=True, text_align=TextAlign.CENTER),
                     Text("Indeks", size=16, weight=FontWeight.BOLD, expand=True, text_align=TextAlign.CENTER),
                     Text("IPK", size=16, weight=FontWeight.BOLD, expand=True, text_align=TextAlign.CENTER),
-                    Text("Signature", size=16, weight=FontWeight.BOLD, expand=True, text_align=TextAlign.CENTER),
                 ]
             ),
             border=border.only(bottom=BorderSide(width=1, color=colors.OUTLINE)),
@@ -26,7 +26,14 @@ class Table(Column):
         )
 
         self.controls = [
-            self.header
+            Container(
+                FilledButton(
+                    text="Buat Transkrip",
+                    on_click=lambda e: self.page.go("/transcript/add/" + mahasiswa.nim)
+                ),
+                padding=padding.symmetric(vertical=40),
+            ),
+            self.header,
         ]
 
         first = True
@@ -43,7 +50,6 @@ class Table(Column):
                                 Text(str(mk.course.sks), size=16, expand=True, text_align=TextAlign.CENTER),
                                 Text(mk.indeks, size=16, expand=True, text_align=TextAlign.CENTER),
                                 Text(mahasiswa.ipk, size=16, expand=True, text_align=TextAlign.CENTER),
-                                Text(mahasiswa.signature if mahasiswa.signature else "-", size=16, expand=True, text_align=TextAlign.CENTER),
                             ]
                         ),
                         border=border.only(top=BorderSide(width=1, color=colors.OUTLINE_VARIANT)),
@@ -62,7 +68,6 @@ class Table(Column):
                                 Text(str(mk.course.sks), size=16, expand=True, text_align=TextAlign.CENTER),
                                 Text(mk.indeks, size=16, expand=True, text_align=TextAlign.CENTER),
                                 Text("", size=16, expand=True, text_align=TextAlign.CENTER),
-                                Text("", size=16, expand=True, text_align=TextAlign.CENTER),
                             ]
                         ),
                         border=border.only(top=BorderSide(width=1, color=colors.OUTLINE_VARIANT)),
@@ -71,14 +76,6 @@ class Table(Column):
                 )
             first = False
 
-        self.controls.append(
-            Container(
-                FilledButton(
-                    text="Buat Transkrip",
-                ),
-                padding=padding.symmetric(vertical=40),
-            )
-        )
 
 class TranscriptListView(ListView):
     def __init__(self, page: Page, db: AcademicData):
@@ -116,7 +113,7 @@ class TranscriptListView(ListView):
             Container(
                 Column(
                     [
-                        Text("Transcript", size=36, weight=FontWeight.BOLD),
+                        Text("Transkrip Akademik", size=36, weight=FontWeight.BOLD),
                         Divider(),
                         Row(
                             controls=[
@@ -201,6 +198,15 @@ class TranscriptView(View):
             page.go("/auth/role")
         elif role == "mahasiswa":
             page.go("/")
+            
+        if not page.client_storage.get("user.key"):
+            page.snack_bar = SnackBar(
+                content=Text("Key not found, please generate a new key", color=colors.ON_ERROR_CONTAINER),
+                bgcolor=colors.ERROR_CONTAINER,
+            )
+            page.snack_bar.open = True
+            page.update()
+            page.go("/settings")
             
         self.controls = [
             IconButton(

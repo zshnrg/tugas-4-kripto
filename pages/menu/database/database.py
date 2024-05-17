@@ -11,14 +11,14 @@ class Table(Column):
         self.header = Container(
             content=Row(
                 controls=[
-                    Text("NIM", size=16, weight=FontWeight.BOLD, expand=True, text_align=TextAlign.CENTER),
-                    Text("Nama", size=16, weight=FontWeight.BOLD, expand=True, text_align=TextAlign.CENTER),
-                    Text("Kode Mata Kuliah", size=16, weight=FontWeight.BOLD, expand=True, text_align=TextAlign.CENTER),
-                    Text("Nama Mata Kuliah", size=16, weight=FontWeight.BOLD, expand=True, text_align=TextAlign.CENTER),
-                    Text("SKS", size=16, weight=FontWeight.BOLD, expand=True, text_align=TextAlign.CENTER),
-                    Text("Indeks", size=16, weight=FontWeight.BOLD, expand=True, text_align=TextAlign.CENTER),
-                    Text("IPK", size=16, weight=FontWeight.BOLD, expand=True, text_align=TextAlign.CENTER),
-                    Text("Signature", size=16, weight=FontWeight.BOLD, expand=True, text_align=TextAlign.CENTER),
+                    Container(Text("NIM", size=16, weight=FontWeight.BOLD, expand=True, text_align=TextAlign.CENTER), expand=1),
+                    Container(Text("Nama", size=16, weight=FontWeight.BOLD, expand=True, text_align=TextAlign.CENTER), expand=1),
+                    Container(Text("Kode Mata Kuliah", size=16, weight=FontWeight.BOLD, expand=True, text_align=TextAlign.CENTER), expand=1),
+                    Container(Text("Nama Mata Kuliah", size=16, weight=FontWeight.BOLD, expand=True, text_align=TextAlign.CENTER), expand=2),
+                    Container(Text("SKS", size=16, weight=FontWeight.BOLD, expand=True, text_align=TextAlign.CENTER), expand=1),
+                    Container(Text("Indeks", size=16, weight=FontWeight.BOLD, expand=True, text_align=TextAlign.CENTER), expand=1),
+                    Container(Text("IPK", size=16, weight=FontWeight.BOLD, expand=True, text_align=TextAlign.CENTER), expand=1),
+                    Container(Text("Signature", size=16, weight=FontWeight.BOLD, expand=True, text_align=TextAlign.CENTER), expand=3),
                 ]
             ),
             border=border.only(bottom=BorderSide(width=1, color=colors.OUTLINE)),
@@ -30,47 +30,52 @@ class Table(Column):
         ]
 
         for mahasiswa in academic_data.mahasiswa:
-            first = True
-            for mk in mahasiswa.mata_kuliah:
-                if first:
-                    self.controls.append(
-                        Container(
-                            content=Row(
-                                controls=[
-                                    Text(mahasiswa.nim, size=16, expand=True, text_align=TextAlign.CENTER),
-                                    Text(mahasiswa.nama, size=16, expand=True,),
-                                    Text(mk.course.kode, size=16, expand=True, text_align=TextAlign.CENTER),
-                                    Text(mk.course.nama, size=16, expand=True, ),
-                                    Text(str(mk.course.sks), size=16, expand=True, text_align=TextAlign.CENTER),
-                                    Text(mk.indeks, size=16, expand=True, text_align=TextAlign.CENTER),
-                                    Text(mahasiswa.ipk, size=16, expand=True, text_align=TextAlign.CENTER),
-                                    Text(mahasiswa.signature if mahasiswa.signature else "-", size=16, expand=True, text_align=TextAlign.CENTER),
-                                ]
-                            ),
-                            border=border.only(top=BorderSide(width=1, color=colors.OUTLINE_VARIANT)),
-                            padding=padding.symmetric(vertical=5),
-                        )
-                    )
-                else:
-                    self.controls.append(
-                        Container(
-                            content=Row(
-                                controls=[
-                                    Text("", size=16, expand=True, text_align=TextAlign.CENTER),
-                                    Text("", size=16, expand=True,),
-                                    Text(mk.course.kode, size=16, expand=True, text_align=TextAlign.CENTER),
-                                    Text(mk.course.nama, size=16, expand=True, ),
-                                    Text(str(mk.course.sks), size=16, expand=True, text_align=TextAlign.CENTER),
-                                    Text(mk.indeks, size=16, expand=True, text_align=TextAlign.CENTER),
-                                    Text("", size=16, expand=True, text_align=TextAlign.CENTER),
-                                    Text("", size=16, expand=True, ),
-                                ]
-                            ),
-                            padding=padding.symmetric(vertical=5),
-                        )
-                    )
-                first = False
+            column = Column()
 
+            for mk in mahasiswa.mata_kuliah:
+                column.controls.append(
+                    Row(
+                        controls=[
+                            Container(Text(mk.course.kode, size=16, expand=True, text_align=TextAlign.CENTER), expand=1),
+                            Container(Text(mk.course.nama, size=16, expand=True,), expand=2),
+                            Container(Text(str(mk.course.sks), size=16, expand=True, text_align=TextAlign.CENTER), expand=1),
+                            Container(Text(mk.indeks, size=16, expand=True, text_align=TextAlign.CENTER), expand=1),
+                        ],
+                    )
+                )
+
+            self.controls.append(
+                Container(
+                    content=Row(
+                        controls=[
+                            Container(
+                                content=Text(mahasiswa.nim, size=16, text_align=TextAlign.CENTER),
+                                expand=1,
+                            ),
+                            Container(
+                                content=Text(mahasiswa.nama, size=16),
+                                expand=1,
+                            ),
+                            Container(
+                                content=column,
+                                expand=5,
+                            ),
+                            Container(
+                                content=Text(mahasiswa.ipk, size=16, text_align=TextAlign.CENTER),
+                                expand=1,
+                            ),
+                            Container(
+                                content=Text(mahasiswa.signature if mahasiswa.signature else "-", size=16, text_align=TextAlign.CENTER),
+                                expand=3,
+                            ),
+                        ]
+                    ),
+                    border=border.only(top=BorderSide(width=1, color=colors.OUTLINE_VARIANT)),
+                    padding=padding.symmetric(vertical=5),
+                )
+                
+            )
+                
 class DatabaseListView(ListView):
     def __init__ (self, page: Page):
         super().__init__()
@@ -184,8 +189,8 @@ class DatabaseView(View):
     def sync_database(self, e):
         self.page.splash = ProgressBar()
         self.page.snack_bar = SnackBar(
-            content=Text("Syncing database...", color=colors.PRIMARY_CONTAINER),
-            bgcolor=colors.ON_PRIMARY_CONTAINER,
+            content=Text("Syncing database...", color=colors.ON_PRIMARY_CONTAINER),
+            bgcolor=colors.PRIMARY_CONTAINER,
         )
         self.page.snack_bar.open = True
         self.page.update()
@@ -195,8 +200,8 @@ class DatabaseView(View):
             self.page.database.load_from_db()
 
             self.page.snack_bar = SnackBar(
-                content=Text("Database synced", color=colors.PRIMARY_CONTAINER),
-                bgcolor=colors.ON_PRIMARY_CONTAINER,
+                content=Text("Database synced", color=colors.ON_PRIMARY_CONTAINER),
+                bgcolor=colors.PRIMARY_CONTAINER,
             )
             self.page.snack_bar.open = True
             self.page.update()
@@ -208,7 +213,7 @@ class DatabaseView(View):
 
         except Exception as e:
             self.page.snack_bar = SnackBar(
-                content=Text(f"Error syncing database: {e}", color=colors.ERROR_CONTAINER),
+                content=Text(f"Error syncing database: {e}", color=colors.ON_ERROR_CONTAINER),
                 bgcolor=colors.ERROR_CONTAINER,
             )
             self.page.snack_bar.open = True

@@ -104,9 +104,19 @@ class Supabase():
         data : APIResponse = self.client.table("grades").insert({"nim": nim, "kode_mata_kuliah": kode, "indeks": indeks}).execute()
         return data.data[0]
     
-    def insertTranskrip(self, nim: str, signature: str):
+    def insertTranskrip(self, nim: str, signature: str, public_key: str):
         # Insert transkrip to supabase
-        data : APIResponse = self.client.table("transcript").insert({"nim": nim, "signature": signature}).execute()
+        data : APIResponse = self.client.table("transcript").insert({"nim": nim, "signature": signature, "public_key": public_key}).execute()
+        return data.data[0]
+    
+    def updateTranskrip(self, nim: str, signature: str, public_key: str):
+        # Update transkrip in supabase
+        data : APIResponse = self.client.table("transcript").update({"signature": signature, "public_key": public_key}).eq("nim", nim).execute()
+        return data.data[0]
+    
+    def deleteTranskrip(self, nim: str):
+        # Delete transkrip from supabase
+        data : APIResponse = self.client.table("transcript").delete().eq("nim", nim).execute()
         return data.data[0]
         
 

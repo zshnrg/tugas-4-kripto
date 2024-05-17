@@ -8,7 +8,8 @@ from pages.menu.menu import MenuView
 from pages.settings import SettingsView
 from pages.menu.database.database import DatabaseView
 from pages.menu.database.add import AddView
-from pages.menu.transcript import TranscriptView
+from pages.menu.transcript.transcript import TranscriptView
+from pages.menu.transcript.create import CreateTranscriptView
 from pages.menu.open import OpenView
 from pages.menu.validate import ValidateView
 
@@ -38,6 +39,8 @@ def router(page: Page, route: str):
         return AddView(page)
     elif troute.match('/transcript'):
         return TranscriptView(page)
+    elif troute.match('/transcript/add/:nim'):
+        return CreateTranscriptView(page, troute.nim)
     elif troute.match('/open'):
         return OpenView(page)
     elif troute.match('/validate'):

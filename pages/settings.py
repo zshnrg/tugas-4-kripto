@@ -133,7 +133,7 @@ class SettingsContainer(Container):
 
     def generate_random_key(self, e):
         # generate random key based on all characters of ascii
-        self.saved_key = "".join([chr(random.randint(0, 256)) for _ in range(32)])
+        self.saved_key = "".join([chr(random.randint(0, 128)) for _ in range(32)])
 
         # show the key with base64 encoding
         self.key.value = base64.b64encode(self.saved_key.encode()).decode()
@@ -146,6 +146,8 @@ class SettingsContainer(Container):
         self.page.client_storage.remove("user.name")
         self.page.client_storage.remove("user.cred_id")
 
+
+        self.page.database.decrypt(self.page.client_storage.get("user.key"))
         self.page.go("/auth")
 
     def save(self, e):

@@ -3,17 +3,22 @@ from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, HRFlowable
 from reportlab.lib.styles import ParagraphStyle, TA_CENTER
-from lib.academic_db import Mahasiswa
-from datetime import datetime
-from pypdf import PdfReader
 
-def create_transcript(mahasiswa: Mahasiswa = None):
-    if mahasiswa:
-        file_name = "[encrypted] " + mahasiswa.nim + "_transcript_" + datetime.now().strftime("%Y%m%d%H%M%S") + ".pdf"
-    else:
-        file_name = "transcript.pdf"
-        
-    pdf = SimpleDocTemplate(file_name, pagesize=letter)
+from pypdf import PdfReader
+from io import BytesIO
+import base64
+
+from lib.academic_db import Mahasiswa
+from lib.cipher.rsa import RSA
+from lib.cipher.sha import Keccak
+
+def create_transcript(
+    mahasiswa: Mahasiswa = None, 
+    public_key: str = None,
+    ):
+    buffer = BytesIO()
+
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
     content = []
 
     content.append(
@@ -84,7 +89,7 @@ def create_transcript(mahasiswa: Mahasiswa = None):
         Paragraph(
             """
             <br/>
-            TRANSKIP AKADEMIK<br/>
+            TRANSKRIP AKADEMIK<br/>
             """,
             style=ParagraphStyle(
                 name='HeaderCustomStyle',
@@ -98,9 +103,9 @@ def create_transcript(mahasiswa: Mahasiswa = None):
 
     content.append(
         Paragraph(
-            """
-            Nama : I Gusti Bagus Baskara<br/>
-            NIM : 16520399<br/>
+            f"""
+            Nama : {mahasiswa.nama}<br/>
+            NIM : {mahasiswa.nim}<br/>
             """,
             style=ParagraphStyle(
                 name='HeaderCustomStyle',
@@ -114,11 +119,24 @@ def create_transcript(mahasiswa: Mahasiswa = None):
 
     data = [
         ['No', 'Kode Mata Kuliah', 'Nama Mata Kuliah', 'SKS', 'Nilai'],
-        ['1', 'II301', 'Matematika STI', '3', 'A'],
-        ['2', 'II391', 'Manajemen Proyek', '2', 'AB'],
-        # Tambahkan baris lain sesuai dengan kebutuhan
-        ['10', 'II401', 'Tugas Akhir', '4', 'A']
     ]
+
+    if mahasiswa:
+        oneline_data = mahasiswa.nim + mahasiswa.nama
+        index = 1
+        for mk in mahasiswa.mata_kuliah:
+            data.append([
+                str(index),
+                mk.course.kode,
+                mk.course.nama,
+                str(mk.course.sks),
+                mk.indeks
+            ])
+            oneline_data += mk.course.kode + mk.course.nama + str(mk.course.sks) + mk.indeks
+            index += 1
+
+
+
     table = Table(data, colWidths=[40, 100, 240, 40, 40])
 
     table.setStyle(TableStyle([
@@ -170,14 +188,26 @@ def create_transcript(mahasiswa: Mahasiswa = None):
         )
     )
 
+    sha = Keccak()
+    oneline_data_hash = sha.hash(oneline_data.encode())
+    oneline_data_base64 = base64.b64encode(oneline_data_hash).decode()
+
+    rsa = RSA()
+    rsa.set_keys(public_key=public_key)
+    encrypted_data = rsa.encrypt(oneline_data_base64)
+
+    numbers_str = [str(num) for num in encrypted_data]
+    numbers_concat = ",".join(numbers_str)
+    signature = base64.b64encode(numbers_concat.encode()).decode()
+
     content.append(
         Paragraph(
-            """
+            f"""
             <br/><br/><br/>
             Kepala Program Studi Sistem dan Teknologi Informasi<br/>
             <br/>
             --Begin signature--<br/>
-            BFc65FFeCD2108CE340B<br/>
+            {signature}<br/>
             --End signature--<br/><br/>
             (Dr. I Gusti Bagus Baskara)
             """,
@@ -191,11 +221,15 @@ def create_transcript(mahasiswa: Mahasiswa = None):
         )
     )
 
-    pdf.build(content)
+    doc.build(content)
+    pdf_data = buffer.getvalue()
+    buffer.close()
 
-def read_transcript():
+    return pdf_data, signature
+
+def read_transcript(path : str):
     try:
-        pdf = PdfReader("transcript.pdf")
+        pdf = PdfReader(path)
         raw = pdf.pages[0].extract_text()
         lines = raw.split("\n")
         for i in range(len(lines)):
@@ -205,23 +239,53 @@ def read_transcript():
         print(filtered)
 
         # Extracting data from the transcript
-        nim = filtered[5].split(": ")[1]
-        nama = filtered[4].split(": ")[1]
+        header_index = filtered.index("TRANSKRIP AKADEMIK")
+        nim = filtered[header_index + 2].split(": ")[1]
+        nama = filtered[header_index + 1].split(": ")[1]
+
+        print(nim, nama)
 
         courses = []
-        for i in range(filtered.index("No") + 5, filtered.index("A (4): Sangat baik, AB (3,5): Antara baik dan sangat baik, B (3): Baik, BC (2,5): Antara baik dan cukup, C (2):"), 5):
-            courses.append({
-                "kode": filtered[i+1],
-                "nama": filtered[i+2],
-                "sks": filtered[i+3],
-                "nilai": filtered[i+4]
-            })
+        if "No" not in filtered:
+            return "Edit detected"
+        else:
+            for i in range(filtered.index("No") + 5, filtered.index("A (4): Sangat baik, AB (3,5): Antara baik dan sangat baik, B (3): Baik, BC (2,5): Antara baik dan cukup, C (2):"), 5):
+                courses.append({
+                    "kode": filtered[i+1],
+                    "nama": filtered[i+2],
+                    "sks": filtered[i+3],
+                    "nilai": filtered[i+4]
+                })
+
+        print(courses)
+
+        sign_header_index = filtered.index("Kepala Program Studi Sistem dan Teknologi Informasi")
         
-        ipk = filtered[-6].split(": ")[1]
-        sks = filtered[-7].split(": ")[1]
+        ipk = filtered[sign_header_index - 1].split(": ")[1]
+        sks = filtered[sign_header_index - 2].split(": ")[1]
+
+        print(ipk, sks)
+
+        oneline_data = nim + nama
+        for course in courses:
+            oneline_data += course["kode"] + course["nama"] + course["sks"] + course["nilai"]
+        
+        sha = Keccak()
+        oneline_data_hash = sha.hash(oneline_data.encode())
+        oneline_data_base64 = base64.b64encode(oneline_data_hash).decode()
+
+        signature_begin = filtered.index("--Begin signature--")
+        signature_end = filtered.index("--End signature--")
+
+        signature = ''.join(filtered[signature_begin+1:signature_end])
+
+        print("Read signature:\n", signature)
+
+        return nim, oneline_data_base64, signature
+
     except Exception as e:
         print("Error: PDF is invalid or corrupted")
-        print(e)
+        return None, None, None
 
     
 

@@ -1,4 +1,8 @@
 from flet import *
+from flask import Flask
+
+import threading
+
 from router import router
 from lib.academic_db import Mahasiswa, Course, AcademicData
 from services.db import db
@@ -18,7 +22,7 @@ async def main(page: Page):
         print(page.route)
         page.views.append(
             router(page, page.route)
-        )
+        )   
         page.update()
 
     def view_pop(view):
@@ -33,4 +37,8 @@ async def main(page: Page):
     page.go("/")
 
 if __name__ == "__main__":
-    app(target=main, assets_dir="assets")
+    app(
+        target=main,
+        assets_dir="assets",
+        upload_dir="uploads",
+    )

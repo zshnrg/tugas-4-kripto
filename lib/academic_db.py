@@ -21,7 +21,7 @@ class Course():
         self.nama = rc4.decrypt(base64.b64decode(self.nama)).decode()
         self.sks = int(rc4.decrypt(base64.b64decode(self.sks)).decode())
         
-class TakenCourse():
+class EnrolledCourse():
     def __init__(self, course: Course, indeks: str):
         self.course = course
         self.indeks = indeks
@@ -37,18 +37,23 @@ class TakenCourse():
         self.indeks = rc4.decrypt(base64.b64decode(self.indeks)).decode()
 
 class Mahasiswa():
-    def __init__(self, nim: str, nama: str, ipk: float = 0, signature: str = None):
+    def __init__(self, nim: str, nama: str, ipk: float = 0, signature: str = None, public_key: str = None):
         self.nim = nim
         self.nama = nama
-        self.mata_kuliah : list[TakenCourse] = []
+        self.mata_kuliah : list[EnrolledCourse] = []
         self.ipk = ipk
         self.signature = signature
+        self.public_key = public_key
 
-    def add_course(self, course: TakenCourse):
+    def add_course(self, course: EnrolledCourse):
+        # Check if course already exists
+        for mk in self.mata_kuliah:
+            if mk.course.kode == course.course.kode:
+                return Exception("Course already exists")
         self.mata_kuliah.append(course)
         self.calculate_ipk()
 
-    def remove_course(self, course: TakenCourse):
+    def remove_course(self, course: EnrolledCourse):
         self.mata_kuliah.remove(course)
 
     def calculate_ipk(self):
@@ -94,7 +99,7 @@ class Mahasiswa():
     def from_dict(data: dict):
         mahasiswa = Mahasiswa(data["nim"], data["nama_mahasiswa"], data["ipk"])
         for mk in data["mata_kuliah"]:
-            mahasiswa.add_course(TakenCourse(Course(mk["kode"], mk["nama"], mk["sks"]), mk["nilai"]))
+            mahasiswa.add_course(EnrolledCourse(Course(mk["kode"], mk["nama"], mk["sks"]), mk["nilai"]))
         return mahasiswa
     
     def encrypt(self, key: str):
@@ -149,7 +154,7 @@ class AcademicData():
         if data is None:
             return
         for d in data:
-            mahasiswa = Mahasiswa(d["nim"], d["nama_mahasiswa"], d["ipk"], d["signature"])
+            mahasiswa = Mahasiswa(d["nim"], d["nama_mahasiswa"], d["ipk"], d["signature"], d["public_key"])
             self.mahasiswa.append(mahasiswa)
             # Split mata kuliah
             kode_mk = d["kode_mata_kuliah"].split(", ")
@@ -163,7 +168,7 @@ class AcademicData():
                     self.available_mata_kuliah.append(course)
 
                 # add course to mahasiswa
-                mahasiswa.add_course(TakenCourse(course, indeks[i]))
+                mahasiswa.add_course(EnrolledCourse(course, indeks[i]))
 
         if self.is_encrypted:
             self.encrypt(self.page.key)
@@ -196,8 +201,12 @@ class AcademicData():
         for m in self.mahasiswa:
             # check if signature is already in the database for mahasiswa with signature is not None
             if m.signature is not None:
-                if {"nim": m.nim, "signature": m.signature} not in transkrip:
-                    self.database.insertTranskrip(m.nim, m.signature)
+                for t in transkrip:
+                    if t["nim"] == m.nim:
+                        self.database.updateTranskrip(m.nim, m.signature, m.public_key)
+                        break
+                else:
+                    self.database.insertTranskrip(m.nim, m.signature, m.public_key)
 
     def add_mahasiswa(self, mahasiswa: Mahasiswa):
         if self.is_encrypted:
@@ -221,7 +230,7 @@ class AcademicData():
                 return c
         return None
     
-    def add_course_grade(self, nim: str, course: TakenCourse):
+    def add_course_grade(self, nim: str, course: EnrolledCourse):
         if self.is_encrypted:
             self.decrypt(self.page.key)
         m = self.get_mahasiswa(nim)
