@@ -1,5 +1,4 @@
 from flet import *
-from flask import Flask
 
 import threading
 
