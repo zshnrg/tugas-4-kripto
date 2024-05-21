@@ -62,6 +62,7 @@ class Mahasiswa():
         for mk in self.mata_kuliah:
             total_sks += mk.course.sks
             total_bobot += mk.course.sks * self._nilai_to_bobot(mk.indeks)
+        self.ipk = total_bobot / total_sks
 
     def _nilai_to_bobot(self, nilai: str):
         if nilai == "A":
