@@ -5,9 +5,10 @@ from pages.auth.role.role import RoleView
 from pages.auth.role.mahasiswa import MahasiswaView
 from pages.auth.role.dosen import DosenView
 from pages.menu.menu import MenuView
-from pages.settings import SettingsView
+from pages.settings.settings import SettingsView
 from pages.menu.database.database import DatabaseView
 from pages.menu.database.add import AddView
+from pages.menu.database.validate import DatabaseValidateView
 from pages.menu.transcript.transcript import TranscriptView
 from pages.menu.transcript.create import CreateTranscriptView
 from pages.menu.open import OpenView
@@ -37,6 +38,8 @@ def router(page: Page, route: str):
         return DatabaseView(page)
     elif troute.match('/database/add'):
         return AddView(page)
+    elif troute.match('/database/validate'):
+        return DatabaseValidateView(page)
     elif troute.match('/transcript'):
         return TranscriptView(page)
     elif troute.match('/transcript/create/:nim'):

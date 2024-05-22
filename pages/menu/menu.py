@@ -38,6 +38,29 @@ class MenuContainer(Container):
             variant=CardVariant.OUTLINED,
         )
 
+        self.validate_database_card = Card(
+            content=Container(
+                content=Row(
+                    controls=[
+                        Column(
+                            controls=[
+                                Text("Validasi Database", size=16, weight=FontWeight.BOLD),
+                                Text("Validasi tanda tangan di database", size=14, color=colors.ON_SURFACE_VARIANT, width=300),
+                            ],
+                            spacing=-4
+                        ),
+                        IconButton(
+                            icon=icons.NAVIGATE_NEXT,
+                            on_click=lambda e: self.page.go("/database/validate"),
+                        )
+                    ]
+                ),
+                padding=padding.all(20),
+                on_click=lambda e: self.page.go("/database/validate")
+            ),
+            variant=CardVariant.OUTLINED,
+        )
+
         self.transcript_card = Card(
             content=Container(
                 content=Row(
@@ -126,6 +149,8 @@ class MenuContainer(Container):
             self.column = Column(
                 controls=[
                     self.database_card,
+                    self.validate_database_card,
+                    Divider(),
                     self.transcript_card,
                     self.open_transcript_card,
                     self.validate_transcript_card,
