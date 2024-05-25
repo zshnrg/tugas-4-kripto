@@ -94,9 +94,9 @@ class Supabase():
         data : APIResponse = self.client.table("mahasiswa").insert({"nim": nim, "nama": nama}).execute()
         return data.data[0]
     
-    def insertMataKuliah(self, kode: str, nama: str):
+    def insertMataKuliah(self, kode: str, nama: str, sks: str):
         # Insert mata kuliah to supabase
-        data : APIResponse = self.client.table("courses").insert({"kode": kode, "nama": nama}).execute()
+        data : APIResponse = self.client.table("courses").insert({"kode": kode, "nama": nama, "sks": sks}).execute()
         return data.data[0]
         
     def insertIndeks(self, nim: str, kode: str, indeks: str):

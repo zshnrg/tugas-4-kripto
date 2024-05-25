@@ -157,20 +157,33 @@ class AcademicData():
         for d in data:
             mahasiswa = Mahasiswa(d["nim"], d["nama_mahasiswa"], d["ipk"], d["signature"], d["public_key"])
             self.mahasiswa.append(mahasiswa)
-            # Split mata kuliah
+            
+            # Debug print to check the content of d
             print(d)
-            kode_mk = d["kode_mata_kuliah"].split(", ")
-            nama_mk = d["nama_mata_kuliah"].split(", ")
-            sks = d["sks"].split(", ")
-            indeks = d["indeks"].split(", ")
-            for i in range(len(kode_mk)):
-                # check if course already exists, if not add it to available_mata_kuliah
-                course = Course(kode_mk[i], nama_mk[i], int(sks[i]))
-                if course not in self.available_mata_kuliah:
-                    self.available_mata_kuliah.append(course)
+            
+            # Split mata kuliah only if the data is not None
+            kode_mk = d.get("kode_mata_kuliah")
+            nama_mk = d.get("nama_mata_kuliah")
+            sks = d.get("sks")
+            indeks = d.get("indeks")
+            
+            if kode_mk and nama_mk and sks and indeks:
+                kode_mk = kode_mk.split(", ")
+                nama_mk = nama_mk.split(", ")
+                sks = sks.split(", ")
+                indeks = indeks.split(", ")
+                
+                for i in range(len(kode_mk)):
+                    # Check if course already exists, if not add it to available_mata_kuliah
+                    course = Course(kode_mk[i], nama_mk[i], int(sks[i]))
+                    if course not in self.available_mata_kuliah:
+                        self.available_mata_kuliah.append(course)
 
-                # add course to mahasiswa
-                mahasiswa.add_course(EnrolledCourse(course, indeks[i]))
+                    # Add course to mahasiswa
+                    mahasiswa.add_course(EnrolledCourse(course, indeks[i]))
+            else:
+                # Handle the case where any of the fields are None
+                print(f"Skipping entry due to missing data: {d}")
 
         if self.is_encrypted:
             self.encrypt(self.page.key)
@@ -192,7 +205,7 @@ class AcademicData():
         all_kode = [m["kode"] for m in mata_kuliah] if mata_kuliah is not None else []
         for mk in m.mata_kuliah:
             if mk.course.kode not in all_kode:
-                self.database.insertMataKuliah(mk.course.kode, mk.course.nama)
+                self.database.insertMataKuliah(mk.course.kode, mk.course.nama, mk.course.sks)
         print("Inserted mata kuliah")
         nilai = self.database.getIndeks()
         print(nilai)

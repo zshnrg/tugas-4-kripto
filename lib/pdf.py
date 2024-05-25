@@ -124,6 +124,7 @@ def create_transcript(
     if mahasiswa:
         oneline_data = mahasiswa.nim + mahasiswa.nama
         index = 1
+        total_sks = 0
         for mk in mahasiswa.mata_kuliah:
             data.append([
                 str(index),
@@ -134,6 +135,7 @@ def create_transcript(
             ])
             oneline_data += mk.course.kode + mk.course.nama + str(mk.course.sks) + mk.indeks
             index += 1
+            total_sks += mk.course.sks
 
 
 
@@ -178,7 +180,7 @@ def create_transcript(
     content.append(
         Table(
             [
-                ['Total SKS : 22', 'IPK : 3.75']
+                [f'Total SKS: {total_sks}', f'IPK : {mahasiswa.ipk}']
             ],
             colWidths=[230, 230],
             style=TableStyle([
