@@ -158,6 +158,7 @@ class AcademicData():
             mahasiswa = Mahasiswa(d["nim"], d["nama_mahasiswa"], d["ipk"], d["signature"], d["public_key"])
             self.mahasiswa.append(mahasiswa)
             # Split mata kuliah
+            print(d)
             kode_mk = d["kode_mata_kuliah"].split(", ")
             nama_mk = d["nama_mata_kuliah"].split(", ")
             sks = d["sks"].split(", ")
@@ -182,34 +183,48 @@ class AcademicData():
         print("Inserting data to database")
         mahasiswa = self.database.getMahasiswa()
         print(mahasiswa)
-        all_nim = [m["nim"] for m in mahasiswa]
+        all_nim = [m["nim"] for m in mahasiswa] if mahasiswa is not None else []
         for m in self.mahasiswa:
             if m.nim not in all_nim:
                 self.database.insertMahasiswa(m.nim, m.nama)
         print("Inserted mahasiswa")
         mata_kuliah = self.database.getMataKuliah()
-        all_kode = [m["kode"] for m in mata_kuliah]
+        all_kode = [m["kode"] for m in mata_kuliah] if mata_kuliah is not None else []
         for mk in m.mata_kuliah:
             if mk.course.kode not in all_kode:
                 self.database.insertMataKuliah(mk.course.kode, mk.course.nama)
         print("Inserted mata kuliah")
         nilai = self.database.getIndeks()
+        print(nilai)
         for m in self.mahasiswa:
+            print(m.nim)
             for mk in m.mata_kuliah:
-                for n in nilai:
-                    if n["nim"] == m.nim and n["kode_mata_kuliah"] == mk.course.kode:
-                        break
+                print(mk.course.kode)
+                if nilai is not None:
+                    for n in nilai:
+                        print(n)
+                        if n["nim"] == m.nim and n["kode_mata_kuliah"] == mk.course.kode:
+                            break
+                    else:
+                        self.database.insertIndeks(m.nim, mk.course.kode, mk.indeks)
                 else:
                     self.database.insertIndeks(m.nim, mk.course.kode, mk.indeks)
 
         transkrip = self.database.getAllTranskrip()
+        print(transkrip)
         for m in self.mahasiswa:
+            print(m.nim)
             # check if signature is already in the database for mahasiswa with signature is not None
             if m.signature is not None:
-                for t in transkrip:
-                    if t["nim"] == m.nim:
-                        self.database.updateTranskrip(m.nim, m.signature, m.public_key)
-                        break
+                print("Checking signature")
+                if transkrip is not None:
+                    for t in transkrip:
+                        print(t)
+                        if t["nim"] == m.nim:
+                            self.database.updateTranskrip(m.nim, m.signature, m.public_key)
+                            break
+                    else:
+                        self.database.insertTranskrip(m.nim, m.signature, m.public_key)
                 else:
                     self.database.insertTranskrip(m.nim, m.signature, m.public_key)
 
