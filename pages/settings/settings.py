@@ -117,7 +117,7 @@ class SettingsContainer(Container):
                                     FilledButton(
                                         text="Simpan",
                                         on_click=self.save
-                                    ) if self.role == "kaprodi" else Container(),
+                                    ) 
                                 ],
                                 spacing=10
                             )
