@@ -88,11 +88,10 @@ class RSA:
     
     def convert_int_to_message(self, number):
         array = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
-        number = str(number)
         message = ""
-        for i in range(0, len(number), 2):
-            index = int(number[i:i+2])
-            message += array[index]
+        for i in range(0, len(str(number)), 2):
+            index = int(str(number)[i:i+2])
+            message = message + array[index]
         return message
 
     def encrypt(self, plaintext):

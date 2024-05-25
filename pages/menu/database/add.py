@@ -264,9 +264,6 @@ class AddListView(ListView):
             self.page.update()
 
             
-        
-
-
 class AddView(View):
     def __init__(self, page: Page):
         super().__init__(page)

@@ -19,7 +19,7 @@ class Course():
         rc4 = RC4(key)
         self.kode = rc4.decrypt(base64.b64decode(self.kode)).decode()
         self.nama = rc4.decrypt(base64.b64decode(self.nama)).decode()
-        self.sks = int(rc4.decrypt(base64.b64decode(self.sks)).decode())
+        self.sks = rc4.decrypt(base64.b64decode(self.sks)).decode()
         
 class EnrolledCourse():
     def __init__(self, course: Course, indeks: str):
@@ -60,8 +60,8 @@ class Mahasiswa():
         total_sks = 0
         total_bobot = 0
         for mk in self.mata_kuliah:
-            total_sks += mk.course.sks
-            total_bobot += mk.course.sks * self._nilai_to_bobot(mk.indeks)
+            total_sks += int(mk.course.sks)
+            total_bobot += int(mk.course.sks) * self._nilai_to_bobot(mk.indeks)
         self.ipk = total_bobot / total_sks
 
     def _nilai_to_bobot(self, nilai: str):
@@ -179,16 +179,20 @@ class AcademicData():
             self.decrypt(self.page.key)
         
         # load data from online database, and compare it with local data to determine which data to insert on the online database
+        print("Inserting data to database")
         mahasiswa = self.database.getMahasiswa()
+        print(mahasiswa)
         all_nim = [m["nim"] for m in mahasiswa]
         for m in self.mahasiswa:
             if m.nim not in all_nim:
                 self.database.insertMahasiswa(m.nim, m.nama)
+        print("Inserted mahasiswa")
         mata_kuliah = self.database.getMataKuliah()
         all_kode = [m["kode"] for m in mata_kuliah]
         for mk in m.mata_kuliah:
             if mk.course.kode not in all_kode:
                 self.database.insertMataKuliah(mk.course.kode, mk.course.nama)
+        print("Inserted mata kuliah")
         nilai = self.database.getIndeks()
         for m in self.mahasiswa:
             for mk in m.mata_kuliah:
