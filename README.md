@@ -1,3 +1,5 @@
+Disclaimer Database (16 Juni 2024) - Kak jika ingin menilai project ini mohon beri tau kami di WA [sini](https://wa.me/6285263230939) agar kami bisa menjalankan kembali databasenya di supabase yang biasanya terpause akibat appnya tidak dijalankan untuk waktu yang cukup lama. App ini menggunakan supabase untuk chattingnya kak, Terima kasih 🙏
+
 # XIS - Sistem Informasi Akademik
 
 <center>
